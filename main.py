@@ -22,11 +22,13 @@ def agg_prec(df3):
 
 if __name__=="__main__":
     # Read CSV file into DataFrame df
-    df = pd.read_csv('/home/muku/Downloads/NEON_precipitation/NEON.D16.ABBY.DP1.00006.001.2020-12.expanded.20210324T151954Z.PROVISIONAL/NEON.D16.ABBY.DP1.00006.001.001.000.030.THRPRE_30min.2020-12.expanded.20210324T151937Z.csv')
-    df2 = pd.read_csv('/home/muku/Downloads/NEON_Site_Lat_Long_Biomass.csv')
-    df3 = pd.read_csv('/home/muku/Downloads/NEON_precipitation/NEON.D16.ABBY.DP1.00006.001.2020-01.expanded.20210123T023002Z.RELEASE-2021/NEON.D16.ABBY.DP1.00006.001.001.000.030.THRPRE_30min.2020-01.expanded.20201016T011717Z.csv')
-    print(df3.keys())
-    df3['startDateTime'] = pd.to_datetime(df3['startDateTime'])
-    storm_df= agg_prec(df3)
+    prec_df = pd.read_csv('resource/NEON.D16.ABBY.DP1.00006.001.000.050.030.SECPRE_30min.2020-11.expanded.20210324T151136Z.csv')
+    biomass_df = pd.read_csv('resource/NEON_Site_Lat_Long_Biomass.csv')
+    thrfall_df = pd.read_csv('resource/NEON.D16.ABBY.DP1.00006.001.001.000.030.THRPRE_30min.2020-11.expanded.20210324T151136Z.csv')
+    lai_df = pd.read_csv('resource/LAI-500m-8d-MCD15A2H-006-results.csv')
+
+    print(thrfall_df.keys())
+    thrfall_df['startDateTime'] = pd.to_datetime(thrfall_df['startDateTime'])
+    storm_df= agg_prec(thrfall_df)
     print(storm_df.head())
 
