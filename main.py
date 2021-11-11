@@ -8,5 +8,4 @@ df3 = pd.read_csv('/home/muku/Downloads/NEON_precipitation/NEON.D16.ABBY.DP1.000
 print(df3.keys())
 # print(df.keys())
 print(df3['TFPrecipBulk'].head())
-print(df3['TFPrecipBulk'].tail())
-# uuuu
+print("some command or something")
