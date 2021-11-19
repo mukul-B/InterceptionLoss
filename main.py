@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import pandasql as ps
-
 
 
 def zero_runs(a):
@@ -28,66 +26,59 @@ def strom_event(zero_trail, storm_len, storm_gap):
     return empty_array
 
 
-def agg_prec(df, prec, type):
+def agg_prec(df, prec, tf):
     df['startDateTime'] = pd.to_datetime(df['startDateTime'])
     prep = df[prec].to_numpy()
     # prep=df3['TFPrecipExpUncert'].iloc[22:32].to_numpy()
     zero_trail = zero_runs(prep)
-    df_res = pd.DataFrame(columns=[type + 'startDateTime', type + 'duration', type])
+    df_res = pd.DataFrame(columns=['startDateTime', 'duration', 'p','t', 'IL'])
     storms = strom_event(zero_trail, 3, 6)
     for i, j in storms:
         # print(i, j)
         df_res = df_res.append(
-            {type + 'startDateTime': df['startDateTime'][i],
-             type + 'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
-             type: df[prec][i:j].sum()}, ignore_index=True)
+            {'startDateTime': df['startDateTime'][i],
+             'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
+             'p': df[prec][i:j].sum(),
+             't':df[tf][i:j].sum(),
+             'IL':(df[prec][i:j].sum()-df[tf][i:j].sum()) / df[prec][i:j].sum()*100} , ignore_index=True)
     return df_res
+
 
 
 if __name__ == "__main__":
     # Read CSV file into DataFrame df
-    site = 'ABBY'
+    site = 'ABBY' #NEON Site name here
+    ID = 'D16' #put ID of NEON site here
+    mo = '2020-11' #change year and month here
 
     biomass_df = pd.read_csv('resource/NEON_Site_Lat_Long_Biomass.csv')
     lai_df = pd.read_csv('resource/LAI-500m-8d-MCD15A2H-006-results.csv')
 
     prec_df = pd.read_csv(
-        'resource/NEON.D16.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.2020-11.expanded.20210324T151136Z.csv')
+        'resource/NEON.' + ID + '.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.' + mo + '.expanded.20210324T151136Z.csv')
     thrfall_df = pd.read_csv(
-        'resource/NEON.D16.' + site + '.DP1.00006.001.001.000.030.THRPRE_30min.2020-11.expanded.20210324T151136Z.csv')
+        'resource/NEON.' + ID + '.' + site + '.DP1.00006.001.001.000.030.THRPRE_30min.' + mo + '.expanded.20210324T151136Z.csv')
 
-    # print(prec_df.keys())
-    # print(biomass_df.keys())
-    # print(thrfall_df.keys())
+    print(prec_df.keys())
+    print(biomass_df.keys())
+    print(thrfall_df.keys())
     print(lai_df.keys())
 
-    site_biomass = biomass_df.loc[(biomass_df.Site == site)]
-    site_lai = lai_df.loc[lai_df.Category == site]
+    newdf = biomass_df.loc[(biomass_df.Site == site)]
+    prec_df["tf"]=thrfall_df["TFPrecipBulk"]
+    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
+    #agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk','t')
 
-    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'p')
-    agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
-
-    # print(agg_prec_df.head()) # 19
-    # print(agg_thrfall_df.head()) #14
+    print(agg_prec_df.head()) # 19
+    #print(agg_thrfall_df.he0ad()) #14
     # need to make it same
-    interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
+    #interception=pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
+    interception=agg_prec_df
     interception['Site'] = site
+    #print(interception[["startDateTime", "duration","Site"]].head())
+    #print("interception")
+    interception= pd.merge(interception,newdf,on="Site")
+    #print(interception[['startDateTime', 'duration','p','t']].head())
 
-    interception = pd.merge(interception, site_biomass, on="Site")
-
-    interception["Date"] = interception["pstartDateTime"].dt.date
-    interception["ldiFromDate"] = interception["Date"] - pd.Timedelta("3 day")
-    interception["ldiToDate"] = interception["Date"] + pd.Timedelta("4 day")
-
-    # A.Date,A.ldiFromDate,A.ldiToDate,B.Date,
-    sqlcode = '''
-    select B.MCD15A2H_006_Lai_500m
-    from interception A
-    left outer join site_lai B on A.Site=B.Category
-    where A.ldiFromDate <= B.Date and A.ldiToDate >= B.Date
-    '''
-
-    Lai_500m = ps.sqldf(sqlcode, locals())
-    print(Lai_500m)
-    interception["Lai_500m"]= Lai_500m
-    print(interception[["Lai_500m","pstartDateTime"]].head())
+    #print(interception[["Site", 'Mean Canopy Height (m)', 'USFS Forest Biomass (mg/ha)']].head())
+    #print(biomass_df.head())
