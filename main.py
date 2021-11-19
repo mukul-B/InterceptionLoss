@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import pandasql as ps
+
 
 
 def zero_runs(a):
@@ -54,22 +56,38 @@ if __name__ == "__main__":
     thrfall_df = pd.read_csv(
         'resource/NEON.D16.' + site + '.DP1.00006.001.001.000.030.THRPRE_30min.2020-11.expanded.20210324T151136Z.csv')
 
-    print(prec_df.keys())
-    print(biomass_df.keys())
-    print(thrfall_df.keys())
+    # print(prec_df.keys())
+    # print(biomass_df.keys())
+    # print(thrfall_df.keys())
     print(lai_df.keys())
 
-    newdf = biomass_df.loc[(biomass_df.Site == site)]
+    site_biomass = biomass_df.loc[(biomass_df.Site == site)]
+    site_lai = lai_df.loc[lai_df.Category == site]
 
-    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk','p')
-    agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk','t')
+    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'p')
+    agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
 
-    print(agg_prec_df.head()) # 19
-    print(agg_thrfall_df.head()) #14
+    # print(agg_prec_df.head()) # 19
+    # print(agg_thrfall_df.head()) #14
     # need to make it same
-    interception=pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
+    interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
     interception['Site'] = site
-    print(interception[["pstartDateTime", "tstartDateTime","Site"]].head())
-    interception= pd.merge(interception,newdf,on="Site")
 
-    print(interception[["Lat","Long","pstartDateTime"]].head())
+    interception = pd.merge(interception, site_biomass, on="Site")
+
+    interception["Date"] = interception["pstartDateTime"].dt.date
+    interception["ldiFromDate"] = interception["Date"] - pd.Timedelta("3 day")
+    interception["ldiToDate"] = interception["Date"] + pd.Timedelta("4 day")
+
+    # A.Date,A.ldiFromDate,A.ldiToDate,B.Date,
+    sqlcode = '''
+    select B.MCD15A2H_006_Lai_500m
+    from interception A
+    left outer join site_lai B on A.Site=B.Category
+    where A.ldiFromDate <= B.Date and A.ldiToDate >= B.Date
+    '''
+
+    Lai_500m = ps.sqldf(sqlcode, locals())
+    print(Lai_500m)
+    interception["Lai_500m"]= Lai_500m
+    print(interception[["Lai_500m","pstartDateTime"]].head())
