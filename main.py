@@ -80,5 +80,5 @@ if __name__ == "__main__":
     interception= pd.merge(interception,newdf,on="Site")
     #print(interception[['startDateTime', 'duration','p','t']].head())
 
-    #print(interception[["Site", 'Mean Canopy Height (m)', 'USFS Forest Biomass (mg/ha)']].head())
+    print(interception[["Site", 'Mean Canopy Height (m)', 'USFS Forest Biomass (mg/ha)']].head())
     #print(biomass_df.head())
