@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import pandasql as ps
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 
@@ -43,6 +45,22 @@ def agg_prec(df, prec, type):
              type: df[prec][i:j].sum()}, ignore_index=True)
     return df_res
 
+def agg_prec(df, prec, tf):
+    df['startDateTime'] = pd.to_datetime(df['startDateTime'])
+    prep = df[prec].to_numpy()
+    # prep=df3['TFPrecipExpUncert'].iloc[22:32].to_numpy()
+    zero_trail = zero_runs(prep)
+    df_res = pd.DataFrame(columns=['startDateTime', 'duration', 'p','t', 'IL'])
+    storms = strom_event(zero_trail, 3, 6)
+    for i, j in storms:
+        # print(i, j)
+        df_res = df_res.append(
+            {'startDateTime': df['startDateTime'][i],
+             'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
+             'p': df[prec][i:j].sum(),
+             't':df[tf][i:j].sum(),
+             'IL':(df[prec][i:j].sum()-df[tf][i:j].sum()) / df[prec][i:j].sum()*100} , ignore_index=True)
+    return df_res
 
 if __name__ == "__main__":
     # Read CSV file into DataFrame df
@@ -56,26 +74,28 @@ if __name__ == "__main__":
     thrfall_df = pd.read_csv(
         'resource/NEON.D16.' + site + '.DP1.00006.001.001.000.030.THRPRE_30min.2020-11.expanded.20210324T151136Z.csv')
 
-    # print(prec_df.keys())
-    # print(biomass_df.keys())
-    # print(thrfall_df.keys())
-    print(lai_df.keys())
+    print(prec_df.keys())
+    print(biomass_df.keys())
+    print(thrfall_df.keys())
+    # print(lai_df.keys())
 
     site_biomass = biomass_df.loc[(biomass_df.Site == site)]
     site_lai = lai_df.loc[lai_df.Category == site]
 
-    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'p')
-    agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
+    prec_df["tf"] = thrfall_df["TFPrecipBulk"]
+    # agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
+    # agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
 
     # print(agg_prec_df.head()) # 19
     # print(agg_thrfall_df.head()) #14
     # need to make it same
-    interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
+    # interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
+    interception=agg_prec(prec_df, 'secPrecipBulk', 'tf')
     interception['Site'] = site
 
     interception = pd.merge(interception, site_biomass, on="Site")
 
-    interception["Date"] = interception["pstartDateTime"].dt.date
+    interception["Date"] = interception["startDateTime"].dt.date
     interception["ldiFromDate"] = interception["Date"] - pd.Timedelta("3 day")
     interception["ldiToDate"] = interception["Date"] + pd.Timedelta("4 day")
 
@@ -90,4 +110,15 @@ if __name__ == "__main__":
     Lai_500m = ps.sqldf(sqlcode, locals())
     print(Lai_500m)
     interception["Lai_500m"]= Lai_500m
-    print(interception[["Lai_500m","pstartDateTime"]].head())
+    print(interception.keys())
+    interception_loss_df= interception[["Lai_500m","Mean Canopy Height (m)","USFS Forest Biomass (mg/ha)","duration","p","IL"]]
+    print(interception_loss_df.head())
+    plt.close()
+    # plt.matshow(interception_loss_df.corr())
+    sns.set_style("whitegrid")
+
+    # Create the pairplot with the first 100 values in our subset of data
+    # Color each sample according to its value in the Target column
+    # The height of each plot will be 2 inches
+    sns.pairplot(interception_loss_df, hue="IL", height=2)
+    plt.show()
