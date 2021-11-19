@@ -9,7 +9,7 @@ def zero_runs(a):
     return ranges.reshape(-1,2)
 
 def agg_prec(df3):
-    prep = df3['TFPrecipBulk'].to_numpy()
+    prep = df3['TFPrecipExpUncert'].to_numpy()
     # prep=df3['TFPrecipExpUncert'].iloc[22:32].to_numpy()
     zero_trail = zero_runs(prep)
     df8 = pd.DataFrame(columns=['duration', 'throughfall'])
@@ -17,7 +17,7 @@ def agg_prec(df3):
         # print(i, j)
         df8 = df8.append(
             {'duration': pd.Timedelta(df3['startDateTime'][j - 1] - df3['startDateTime'][i]).seconds / 60.0,
-             'throughfall': df3['TFPrecipBulk'][i:j].sum()}, ignore_index=True)
+             'throughfall': df3['TFPrecipExpUncert'][i:j].sum()}, ignore_index=True)
     return df8
 
 if __name__=="__main__":
