@@ -35,7 +35,8 @@ def agg_prec(df, prec, tf):
     storms = storm_event(zero_trail, 3, 6)
     for i, j in storms:
         # print(i, j)
-        df_res = df_res.append(
+        if df[prec][i:j].sum()>5:
+            df_res = df_res.append(
             {'startDateTime': df['startDateTime'][i],
              'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
              'p': df[prec][i:j].sum(),
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
     final_df = pd.DataFrame(columns = columns_list)
 
-    for a in range(25): #change to for a in df_Names to run through all files.
+    for a in range(30): #change range to run through all files. (note an indexing error happens at range 33, i don't know why)
         #Read in precipitation and throughfall files
         prec_df = pd.read_csv('resource/'+ df_Names.iloc[a,0])
         thrfall_df = pd.read_csv('resource/'+ df_Names.iloc[a,1])
@@ -74,9 +75,15 @@ if __name__ == "__main__":
         #print(thrfall_df.keys())
         #print(lai_df.keys())
 
+        if file[40:43] == 'SEC':
+            P_Name = 'secPrecipBulk'
+        elif file[40:43] == 'PRI':
+            P_Name = 'priPrecipBulk'
+
+
         newdf = biomass_df.loc[(biomass_df.Site == site)]
         prec_df['tf'] = thrfall_df['TFPrecipBulk']
-        agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
+        agg_prec_df = agg_prec(prec_df, P_Name, 'tf')
 
         #print(agg_prec_df.head())  # 19
         interception = agg_prec_df
@@ -88,4 +95,5 @@ if __name__ == "__main__":
 
     print("Program completed")
     print(final_df.head())
+    #print(final_df)
 
