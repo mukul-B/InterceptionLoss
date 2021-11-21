@@ -59,7 +59,7 @@ if __name__ == "__main__":
     columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
     final_df = pd.DataFrame(columns = columns_list)
 
-    for a in range(10): #change to for a in df_Names to run through all files.
+    for a in range(25): #change to for a in df_Names to run through all files.
         #Read in precipitation and throughfall files
         prec_df = pd.read_csv('resource/'+ df_Names.iloc[a,0])
         thrfall_df = pd.read_csv('resource/'+ df_Names.iloc[a,1])
