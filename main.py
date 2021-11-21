@@ -48,15 +48,15 @@ def agg_prec(df, prec, tf):
 
 if __name__ == "__main__":
     # Read File_Name CSV file into DataFrame df_Names
-    df_Names = pd.read_csv('resource/File_Names2020.csv')
+    df_Names = pd.read_csv('resource/static/File_Names2020.csv')
 
     # site = 'ABBY' #NEON Site name here
     # ID = 'D16' #put ID of NEON site here
     # mo = '2020-11' #change year and month here
 
     #Read in biomass and LAI files
-    biomass_df = pd.read_csv('resource/Biomass.csv')
-    lai_df = pd.read_csv('resource/LAI-500m-8d-MCD15A2H-006-results.csv')
+    biomass_df = pd.read_csv('resource/static/Biomass.csv')
+    lai_df = pd.read_csv('resource/static/LAI-500m-8d-MCD15A2H-006-results.csv')
     columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
     final_df = pd.DataFrame(columns = columns_list)
 
