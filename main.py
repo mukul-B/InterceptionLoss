@@ -10,7 +10,7 @@ def zero_runs(a):
     return ranges
 
 
-def strom_event(zero_trail, storm_len, storm_gap):
+def storm_event(zero_trail, storm_len, storm_gap):
     diffin = np.array([zero_trail[i + 1][0] - zero_trail[i][1] for i in range(len(zero_trail) - 1)] + [-1])
     empty_array = np.empty((0, 2), int)
     start, end = zero_trail[0]
@@ -32,7 +32,7 @@ def agg_prec(df, prec, tf):
     # prep=df3['TFPrecipExpUncert'].iloc[22:32].to_numpy()
     zero_trail = zero_runs(prep)
     df_res = pd.DataFrame(columns=['startDateTime', 'duration', 'p','t', 'IL'])
-    storms = strom_event(zero_trail, 3, 6)
+    storms = storm_event(zero_trail, 3, 6)
     for i, j in storms:
         # print(i, j)
         df_res = df_res.append(
