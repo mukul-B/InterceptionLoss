@@ -46,39 +46,46 @@ def agg_prec(df, prec, tf):
 
 
 if __name__ == "__main__":
-    # Read CSV file into DataFrame df
-    site = 'ABBY' #NEON Site name here
-    ID = 'D16' #put ID of NEON site here
-    mo = '2020-11' #change year and month here
+    # Read File_Name CSV file into DataFrame df_Names
+    df_Names = pd.read_csv('resource/File_Names2020.csv')
 
-    biomass_df = pd.read_csv('resource/NEON_Site_Lat_Long_Biomass.csv')
+    # site = 'ABBY' #NEON Site name here
+    # ID = 'D16' #put ID of NEON site here
+    # mo = '2020-11' #change year and month here
+
+    #Read in biomass and LAI files
+    biomass_df = pd.read_csv('resource/Biomass.csv')
     lai_df = pd.read_csv('resource/LAI-500m-8d-MCD15A2H-006-results.csv')
+    columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
+    final_df = pd.DataFrame(columns = columns_list)
 
-    prec_df = pd.read_csv(
-        'resource/NEON.' + ID + '.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.' + mo + '.expanded.20210324T151136Z.csv')
-    thrfall_df = pd.read_csv(
-        'resource/NEON.' + ID + '.' + site + '.DP1.00006.001.001.000.030.THRPRE_30min.' + mo + '.expanded.20210324T151136Z.csv')
+    for a in range(10): #change to for a in df_Names to run through all files.
+        #Read in precipitation and throughfall files
+        prec_df = pd.read_csv('resource/'+ df_Names.iloc[a,0])
+        thrfall_df = pd.read_csv('resource/'+ df_Names.iloc[a,1])
+        file = df_Names.iloc[a,0] #store file name into string called file
+        file_tf = df_Names.iloc[a,1]
+        site = file[9:13] #pull site name out of file name
+        #print("files: ", file, "\n", file_tf) #print statement to check file name
+        #print("site:", site) #print statement to check site name
 
-    print(prec_df.keys())
-    print(biomass_df.keys())
-    print(thrfall_df.keys())
-    print(lai_df.keys())
+        #print(prec_df.keys())
+        #print(biomass_df.keys())
+        #print(thrfall_df.keys())
+        #print(lai_df.keys())
 
-    newdf = biomass_df.loc[(biomass_df.Site == site)]
-    prec_df["tf"]=thrfall_df["TFPrecipBulk"]
-    agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
-    #agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk','t')
+        newdf = biomass_df.loc[(biomass_df.Site == site)]
+        prec_df['tf'] = thrfall_df['TFPrecipBulk']
+        agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
 
-    print(agg_prec_df.head()) # 19
-    #print(agg_thrfall_df.he0ad()) #14
-    # need to make it same
-    #interception=pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
-    interception=agg_prec_df
-    interception['Site'] = site
-    #print(interception[["startDateTime", "duration","Site"]].head())
-    #print("interception")
-    interception= pd.merge(interception,newdf,on="Site")
-    #print(interception[['startDateTime', 'duration','p','t']].head())
+        #print(agg_prec_df.head())  # 19
+        interception = agg_prec_df
+        interception['Site'] = site #add site to all storm rows in interception df
+        interception = pd.merge(interception, newdf, on="Site") #merge with biomass df on site
+        #print(interception[["Site", 'Mean Canopy Height (m)', 'USFS Forest Biomass (mg/ha)']].head())
+        final_df = pd.concat([final_df, interception], ignore_index=True, sort=False)
+        #print("iteration: ", a)
 
-    print(interception[["Site", 'Mean Canopy Height (m)', 'USFS Forest Biomass (mg/ha)']].head())
-    #print(biomass_df.head())
+    print("Program completed")
+    print(final_df.head())
+
