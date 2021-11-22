@@ -58,18 +58,20 @@ def agg_prec(df, prec, tf):
         # print(i, j)
         prep = df[prec][i:j].sum()
         thr = df[tf][i:j].sum()
-        itcp_loss = 0 if prep == 0 else (prep - thr / prep) * 100
-        df_res = df_res.append(
-            {'startDateTime': df['startDateTime'][i],
-             'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
-             'p': prep,
-             't': thr,
-             'IL': itcp_loss}, ignore_index=True)
+        itcp_loss = 0 if prep == 0 else ((prep - thr) / prep) * 100
+
+        if prep > 5 and thr!=0:
+            df_res = df_res.append(
+                {'startDateTime': df['startDateTime'][i],
+                 'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
+                 'p': prep,
+                 't': thr,
+                 'IL': itcp_loss}, ignore_index=True)
     return df_res
 
 
 def staging(precip_path, thrfall_path, site, prec_type):
-    biomass_df = pd.read_csv('resource/static/NEON_Site_Lat_Long_Biomass.csv')
+    biomass_df = pd.read_csv('resource/static/Biomass.csv')
     lai_df = pd.read_csv('resource/static/LAI-500m-8d-MCD15A2H-006-results.csv')
     # prec_df = pd.read_csv(
     #     'resource/NEON.D16.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.2020-11.expanded.20210324T151136Z.csv')
@@ -96,7 +98,7 @@ def staging(precip_path, thrfall_path, site, prec_type):
     # interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
     interception = agg_prec(prec_df, prec_type + 'PrecipBulk', 'tf')
     interception['Site'] = site
-    
+    print(len(interception) )
     if len(interception) != 0:
         interception = pd.merge(interception, site_biomass, on="Site")
 
@@ -115,10 +117,15 @@ def staging(precip_path, thrfall_path, site, prec_type):
         Lai_500m = ps.sqldf(sqlcode, locals())
         # print(Lai_500m)
         interception["Lai_500m"] = Lai_500m
+
+
         # print(interception.keys())
+        # columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
+        #
         interception_loss_df = interception[
-            ["Lai_500m", "Mean Canopy Height (m)", "USFS Forest Biomass (mg/ha)", "duration", "p", "IL"]]
+            ["startDateTime","Lai_500m", "MCH", "Biomass", "duration", "p", "IL"]]
     # print(interception_loss_df.head())
+        interception_loss_df.to_csv('/home/muku/PycharmProjects/InterceptionLoss/resource/Staging/output2.csv', mode='a', header=False, index=False)
 
 
 if __name__ == "__main__":
@@ -128,23 +135,25 @@ if __name__ == "__main__":
              'WREF', 'SJER', 'SOAP', 'TEAK', 'BONA', 'PUUM', 'JORN', 'DEJU']
     # Sites = ['ABBY']
     #
-    date = "2020-10"
+    dates = range(1,12)
     for site in Sites:
-        print(site)
+        for date in dates:
+            date="2020-"+str(date).rjust(2, '0')
+            print(site,date)
 
-        precip_path = glob.glob(
-            'resource/NEON.D*.' + site + '.DP1.00006.001.*.SECPRE_30min.' + date + '.basic.*.csv')
-
-        prec_type = "sec"
-        if (len(precip_path) == 0):
             precip_path = glob.glob(
-                'resource/NEON.D*.' + site + '.DP1.00006.001.*.PRIPRE_30min.' + date + '.basic.*.csv')
-            prec_type = "pri"
+                'resource/NEON.D*.' + site + '.DP1.00006.001.*.SECPRE_30min.' + date + '.basic.*.csv')
 
-        thrfall_path = glob.glob(
-            'resource/NEON.D*.' + site + '.DP1.00006.001.*.THRPRE_30min.2020-11.basic.*.csv')
+            prec_type = "sec"
+            if (len(precip_path) == 0):
+                precip_path = glob.glob(
+                    'resource/NEON.D*.' + site + '.DP1.00006.001.*.PRIPRE_30min.' + date + '.basic.*.csv')
+                prec_type = "pri"
 
-        if len(precip_path) == 0 or len(thrfall_path) == 0:
-            print("file does not exist")
-        else:
-            staging(precip_path[0], thrfall_path[0], site, prec_type)
+            thrfall_path = glob.glob(
+                'resource/NEON.D*.' + site + '.DP1.00006.001.*.THRPRE_30min.' + date + '.basic.*.csv')
+
+            if len(precip_path) == 0 or len(thrfall_path) == 0:
+                print("file does not exist")
+            else:
+                staging(precip_path[0], thrfall_path[0], site, prec_type)
