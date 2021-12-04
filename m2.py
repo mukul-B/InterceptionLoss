@@ -146,7 +146,7 @@ if __name__ == "__main__":
     for site in Sites:
         for date in dates:
             #date="2020-"+str(date).rjust(2, '0')
-            print(site,date)
+            print(site, date)
 
             precip_path = glob.glob(
                 'resource/NEON.D*.' + site + '.DP1.00006.001.*.SECPRE_30min.' + date + '.basic.*.csv')
