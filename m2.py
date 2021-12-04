@@ -70,6 +70,9 @@ def agg_prec(df, prec, tf):
     return df_res
 
 
+
+
+
 def staging(precip_path, thrfall_path, site, prec_type):
     biomass_df = pd.read_csv('resource/static/Biomass.csv')
     lai_df = pd.read_csv('resource/static/LAI-500m-8d-MCD15A2H-006-results.csv')
@@ -88,7 +91,7 @@ def staging(precip_path, thrfall_path, site, prec_type):
     site_biomass = biomass_df.loc[(biomass_df.Site == site)]
     site_lai = lai_df.loc[lai_df.Category == site]
 
-    prec_df["tf"] = thrfall_df["TFPrecipBulk"]
+    prec_df["tf"] = thrfall_df["TFPrecipBulkAvg"]
     # agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
     # agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
 
@@ -125,17 +128,17 @@ def staging(precip_path, thrfall_path, site, prec_type):
         interception_loss_df = interception[
             ["startDateTime","Lai_500m", "MCH", "Biomass", "duration", "p", "IL"]]
     # print(interception_loss_df.head())
-        interception_loss_df.to_csv('/home/muku/PycharmProjects/InterceptionLoss/resource/Staging/output2.csv', mode='a', header=False, index=False)
+        interception_loss_df.to_csv('C:/Users/Abigail Sandquist/PycharmProjects/InterceptionLoss/resource/Staging/output2.csv', mode='a', header=False, index=False)
 
 
 if __name__ == "__main__":
 
     Sites = ['BART', 'HARV', 'BLAN', 'SCBI', 'SERC', 'DSNY', 'JERC', 'OSBS', 'GUAN', 'STEI', 'TREE', 'UNDE', 'KONZ',
              'UKFS', 'GRSM', 'MLBS', 'ORNL', 'DELA', 'LENO', 'TALL', 'RMNP', 'CLBJ', 'YELL', 'SRER', 'ABBY',
-             'WREF', 'SJER', 'SOAP', 'TEAK', 'BONA', 'PUUM', 'JORN', 'DEJU']
+             'WREF', 'SJER', 'SOAP', 'TEAK', 'BONA', 'JORN', 'DEJU']
     # Sites = ['ABBY']
     #
-    dates = range(1,12)
+    dates = range(1,13)
     for site in Sites:
         for date in dates:
             date="2020-"+str(date).rjust(2, '0')
@@ -151,7 +154,7 @@ if __name__ == "__main__":
                 prec_type = "pri"
 
             thrfall_path = glob.glob(
-                'resource/NEON.D*.' + site + '.DP1.00006.001.*.THRPRE_30min.' + date + '.basic.*.csv')
+                'resource/AvgTF/TFAvg.' + site + '.' + date + '.csv')
 
             if len(precip_path) == 0 or len(thrfall_path) == 0:
                 print("file does not exist")

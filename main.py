@@ -66,8 +66,8 @@ if __name__ == "__main__":
     # Read CSV file into DataFrame df
     site = 'ABBY'
 
-    biomass_df = pd.read_csv('resource/NEON_Site_Lat_Long_Biomass.csv')
-    lai_df = pd.read_csv('resource/LAI-500m-8d-MCD15A2H-006-results.csv')
+    biomass_df = pd.read_csv('resource/static/NEON_Site_Lat_Long_Biomass.csv')
+    lai_df = pd.read_csv('resource/static/LAI-500m-8d-MCD15A2H-006-results.csv')
 
     prec_df = pd.read_csv(
         'resource/NEON.D16.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.2020-11.expanded.20210324T151136Z.csv')
