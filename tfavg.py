@@ -35,10 +35,15 @@ def tfavg(site, date):
 site_list = ['BART', 'HARV', 'BLAN', 'SCBI', 'SERC', 'DSNY', 'JERC', 'OSBS', 'GUAN', 'STEI', 'TREE', 'UNDE', 'KONZ',
              'UKFS', 'GRSM', 'MLBS', 'ORNL', 'DELA', 'LENO', 'TALL', 'RMNP', 'CLBJ', 'YELL', 'SRER', 'ABBY',
              'WREF', 'SJER', 'SOAP', 'TEAK', 'BONA', 'JORN', 'DEJU']
-dates = range(1,13)
+
+dates = ['2020-01', '2020-02', '2020-03', '2020-04', '2020-05', '2020-06', '2020-07', '2020-08', '2020-09',
+             '2020-10', '2020-11', '2020-12', '2021-01', '2021-02', '2021-03', '2021-04', '2021-05', '2021-06',
+             '2021-07', '2021-08', '2021-09', '2021-10']
+
+#dates = range(1,13)
 for site in site_list:
     for date in dates:
-        date = "2020-" + str(date).rjust(2, '0')
+        #date = "2020-" + str(date).rjust(2, '0')
         tfavg(site, date)
         print(site, date)
 
