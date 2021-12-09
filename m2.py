@@ -60,7 +60,7 @@ def agg_prec(df, prec, tf):
         thr = df[tf][i:j].sum()
         itcp_loss = 0 if prep == 0 else ((prep - thr) / prep) * 100
 
-        if prep > 5 and thr!=0:
+        if prep > 5 and thr!=0: # and itcp_loss > 0:
             df_res = df_res.append(
                 {'startDateTime': df['startDateTime'][i],
                  'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
@@ -68,9 +68,6 @@ def agg_prec(df, prec, tf):
                  't': thr,
                  'IL': itcp_loss}, ignore_index=True)
     return df_res
-
-
-
 
 
 def staging(precip_path, thrfall_path, site, prec_type):
@@ -91,7 +88,7 @@ def staging(precip_path, thrfall_path, site, prec_type):
     site_biomass = biomass_df.loc[(biomass_df.Site == site)]
     site_lai = lai_df.loc[lai_df.Category == site]
 
-    prec_df["tf"] = thrfall_df["TFPrecipBulkAvg"]
+    prec_df["tf"] = thrfall_df["TFPrecipBulkAvg"] ###Avg
     # agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
     # agg_thrfall_df = agg_prec(thrfall_df, 'TFPrecipBulk', 't')
 
@@ -133,14 +130,14 @@ def staging(precip_path, thrfall_path, site, prec_type):
 
 if __name__ == "__main__":
 
-    Sites = ['BART', 'HARV', 'BLAN', 'SCBI', 'SERC', 'DSNY', 'JERC', 'OSBS', 'GUAN', 'STEI', 'TREE', 'UNDE', 'KONZ',
+    Sites = ['BART', 'BLAN', 'SCBI', 'SERC', 'DSNY', 'JERC', 'OSBS', 'GUAN', 'STEI', 'TREE', 'UNDE', 'KONZ',
              'UKFS', 'GRSM', 'MLBS', 'ORNL', 'DELA', 'LENO', 'TALL', 'RMNP', 'CLBJ', 'YELL', 'SRER', 'ABBY',
              'WREF', 'SJER', 'SOAP', 'TEAK', 'BONA', 'JORN', 'DEJU']
     # Sites = ['ABBY']
     #
     dates = ['2020-01', '2020-02', '2020-03', '2020-04', '2020-05', '2020-06', '2020-07', '2020-08', '2020-09',
              '2020-10', '2020-11', '2020-12', '2021-01', '2021-02', '2021-03', '2021-04', '2021-05', '2021-06',
-             '2021-07', '2021-08', '2021-09', '2021-10']
+             '2021-07', '2021-08', '2021-09']
 
     #dates = range(1,13)
     for site in Sites:
@@ -158,9 +155,11 @@ if __name__ == "__main__":
                 prec_type = "pri"
 
             thrfall_path = glob.glob(
+                #'resource/NEON.D*.' + site + '.DP1.00006.001.001.*.THRPRE_30min.' + date + '.basic.*.csv')
                 'resource/AvgTF/TFAvg.' + site + '.' + date + '.csv')
 
             if len(precip_path) == 0 or len(thrfall_path) == 0:
                 print("file does not exist")
             else:
                 staging(precip_path[0], thrfall_path[0], site, prec_type)
+
