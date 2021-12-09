@@ -4,7 +4,7 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sb
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.neural_network import MLPRegressor
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
@@ -49,7 +49,7 @@ data2 = data
 data2.columns= ['startDateTime','LAI', 'MCH', 'Biomass', 'Duration', 'Precip', 'IL']
 del data2['startDateTime']
 print(data2.head())
-corr = data2.corr()
+corr = data2.corr(method='spearman')
 mask = np.triu(np.ones_like(corr, dtype=bool))
 #cmap = sb.diverging_palette(20, 230, as_cmap=True)
 sb.color_palette("crest_r", as_cmap=True)
@@ -59,7 +59,8 @@ sb.heatmap(corr, cmap="crest", vmax=1, vmin=-.2, annot=True)
 print(data2.describe())
 
 errors = mean_absolute_error(y_test, y_pred)
-error2 = math.sqrt(errors)
+error2 = mean_squared_error(y_test, y_pred)
+#error2 = math.sqrt(errors)
 print('errors', errors, error2)
 
 
