@@ -10,12 +10,14 @@ from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
 
 
-columns_list = ["startDateTime", "Lai_500m", "MCH", "Biomass", "duration", "p", "IL"] #"startDateTime",
+columns_list = ["startDateTime", "EF", "GH", "SH", "DF", "MF", "PH", "WW", "Lai_500m", "MCH", "Biomass", "duration", "p", "IL"] #"startDateTime",
 data = pd.read_csv('resource/Staging/output2.csv', names=columns_list)
+
+
 
 #data =data[:16000]
 
-X=data[["Lai_500m", "MCH", "Biomass", "duration", "p"]]
+X=data[["EF", "GH", "SH", "DF", "MF", "PH", "WW"]]
 y=data[["IL"]]
 
 #print(data.head())
@@ -46,7 +48,7 @@ print('regression score test', regr.score(X_test, y_test))
 
 #create correlation heatmap
 data2 = data
-data2.columns= ['startDateTime','LAI', 'MCH', 'Biomass', 'Duration', 'Precip', 'IL']
+data2.columns= ['startDateTime', 'LAI', "EF", "GH", "SH", "DF", "MF", "PH", "WW", 'MCH', 'Biomass', 'Duration', 'Precip', 'IL']
 del data2['startDateTime']
 print(data2.head())
 corr = data2.corr(method='spearman')
@@ -54,7 +56,7 @@ mask = np.triu(np.ones_like(corr, dtype=bool))
 #cmap = sb.diverging_palette(20, 230, as_cmap=True)
 sb.color_palette("crest_r", as_cmap=True)
 
-sb.heatmap(corr, cmap="crest", vmax=1, vmin=-.2, annot=True)
+#sb.heatmap(corr, cmap="crest", vmax=1, vmin=-.2, annot=True)
 #sb.pairplot(data, hue='IL', height=2, palette="crest_r", diag_kind='hist')
 print(data2.describe())
 
@@ -63,6 +65,4 @@ error2 = mean_squared_error(y_test, y_pred)
 #error2 = math.sqrt(errors)
 print('errors', errors, error2)
 
-
-
-plt.show()
+#plt.show()

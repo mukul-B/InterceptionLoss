@@ -31,7 +31,7 @@ def strom_event(zero_trail, storm_len, storm_gap):
     return empty_array
 
 
-def agg_prec(df, prec, type):
+def agg_prec1(df, prec, type):
     df['startDateTime'] = pd.to_datetime(df['startDateTime'])
     prep = df[prec].to_numpy()
     # prep=df3['TFPrecipExpUncert'].iloc[22:32].to_numpy()
@@ -60,7 +60,7 @@ def agg_prec(df, prec, tf):
         thr = df[tf][i:j].sum()
         itcp_loss = 0 if prep == 0 else ((prep - thr) / prep) * 100
 
-        if prep > 5 and thr!=0: # and itcp_loss > 0:
+        if prep > 5 and thr!=0:
             df_res = df_res.append(
                 {'startDateTime': df['startDateTime'][i],
                  'duration': pd.Timedelta(df['startDateTime'][j - 1] - df['startDateTime'][i]).seconds / 60.0,
@@ -73,6 +73,7 @@ def agg_prec(df, prec, tf):
 def staging(precip_path, thrfall_path, site, prec_type):
     biomass_df = pd.read_csv('resource/static/Biomass.csv')
     lai_df = pd.read_csv('resource/static/LAI-500m-8d-MCD15A2H-006-results.csv')
+    veg_df = pd.read_csv('resource/static/site_veg.csv')
     # prec_df = pd.read_csv(
     #     'resource/NEON.D16.' + site + '.DP1.00006.001.000.050.030.SECPRE_30min.2020-11.expanded.20210324T151136Z.csv')
     # thrfall_df = pd.read_csv(
@@ -87,6 +88,8 @@ def staging(precip_path, thrfall_path, site, prec_type):
 
     site_biomass = biomass_df.loc[(biomass_df.Site == site)]
     site_lai = lai_df.loc[lai_df.Category == site]
+    site_veg = veg_df.loc[veg_df.Site == site]
+
 
     prec_df["tf"] = thrfall_df["TFPrecipBulkAvg"] ###Avg
     # agg_prec_df = agg_prec(prec_df, 'secPrecipBulk', 'tf')
@@ -98,9 +101,11 @@ def staging(precip_path, thrfall_path, site, prec_type):
     # interception = pd.concat([agg_prec_df, agg_thrfall_df], axis=1)
     interception = agg_prec(prec_df, prec_type + 'PrecipBulk', 'tf')
     interception['Site'] = site
-    print(len(interception) )
+
+    #print(len(interception))
     if len(interception) != 0:
         interception = pd.merge(interception, site_biomass, on="Site")
+        interception = pd.merge(interception, site_veg, on="Site")
 
         interception["Date"] = interception["startDateTime"].dt.date
         interception["ldiFromDate"] = interception["Date"] - pd.Timedelta("3 day")
@@ -123,7 +128,7 @@ def staging(precip_path, thrfall_path, site, prec_type):
         # columns_list = ('startDateTime', 'duration', 'p', 't', 'Site', 'IL', 'Biomass', 'MCH', 'LAI')
         #
         interception_loss_df = interception[
-            ["startDateTime","Lai_500m", "MCH", "Biomass", "duration", "p", "IL"]]
+            ["startDateTime", "EF", "GH", "SH", "DF", "MF", "PH", "WW", "Lai_500m", "MCH", "Biomass", "duration", "p", "IL"]]
     # print(interception_loss_df.head())
         interception_loss_df.to_csv('C:/Users/Abigail Sandquist/PycharmProjects/InterceptionLoss/resource/Staging/output2.csv', mode='a', header=False, index=False)
 
@@ -143,7 +148,7 @@ if __name__ == "__main__":
     for site in Sites:
         for date in dates:
             #date="2020-"+str(date).rjust(2, '0')
-            print(site, date)
+            #print(site, date)
 
             precip_path = glob.glob(
                 'resource/NEON.D*.' + site + '.DP1.00006.001.*.SECPRE_30min.' + date + '.basic.*.csv')
